@@ -239,8 +239,8 @@ class Emulator:
 
             top_left, bottom_right = self._rectangle
 
-            in_longitude = longitude > min(top_left.longitude, bottom_right.longitude) and \
-                           longitude < max(top_left.longitude, bottom_right.longitude)
+            in_longitude = longitude > min(top_left.longitude, bottom_right.longitude) \
+                           and longitude < max(top_left.longitude, bottom_right.longitude)
             in_latitude = latitude > min(top_left.latitude, bottom_right.latitude) and \
                           latitude < max(top_left.latitude, bottom_right.latitude)
 

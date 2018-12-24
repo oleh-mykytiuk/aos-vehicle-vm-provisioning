@@ -7,7 +7,6 @@ ENV PYTHONDONTWRITEBYTECODE 1
 
 COPY map.json /app/aos_telemetry_emulator/
 COPY *.py /app/aos_telemetry_emulator/
-COPY vis_telemetry /app/aos_telemetry_emulator/
 
 WORKDIR /app/aos_telemetry_emulator/
 

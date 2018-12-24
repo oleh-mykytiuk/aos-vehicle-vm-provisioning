@@ -7,8 +7,8 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=15
-WorkingDirectory=/opt/aos_servicemanager
-ExecStart=/opt/aos_servicemanager/aos_servicemanager
+WorkingDirectory=/opt/aos/aos_servicemanager
+ExecStart=/opt/aos/aos_servicemanager/aos_servicemanager
 
 [Install]
 WantedBy=multi-user.target

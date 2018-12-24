@@ -44,6 +44,8 @@ check_hostname
 #ssh root@$AOS_VEHICLE "add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu `lsb_release -cs` stable\""
 #ssh root@$AOS_VEHICLE "apt update"
 #ssh root@$AOS_VEHICLE "apt install -y docker-ce"
+#ssh root@$AOS_VEHICLE "curl -L \"https://github.com/docker/compose/releases/download/1.23.1/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose"
+#ssh root@$AOS_VEHICLE "chmod +x /usr/local/bin/docker-compose"
 
 # Check sysctl.ipv4.ip_forward
 print_colored_text "Checking ${GREEN}IP forward${NOC}..."
@@ -77,16 +79,19 @@ fi
 # Enable exit on error
 set -e
 
-# Check wwwivi is known host
-print_colored_text "Setup ${GREEN}AOS services${NOC}..."
-ssh root@$AOS_VEHICLE "mkdir -p /opt/aos_servicemanager/data/fcrypt"
+# Copy files
+print_colored_text "Copying files to VM..."
+ssh root@$AOS_VEHICLE "mkdir -p /opt/aos/aos_servicemanager/data/fcrypt"
 ssh root@$AOS_VEHICLE "mkdir -p /usr/share/ca-certificates/extra/"
-rcp -r ./aos/aos_servicemanager/* root@$AOS_VEHICLE:/opt/aos_servicemanager
-ssh root@$AOS_VEHICLE "cp /opt/aos_servicemanager/aos_servicemanager.service /etc/systemd/system/"
+rcp -r ./aos/* root@$AOS_VEHICLE:/opt/aos/
+
+# Setup AOS service manager
+print_colored_text "Setup ${GREEN}AOS services${NOC}..."
+ssh root@$AOS_VEHICLE "cp /opt/aos/aos_servicemanager/aos_servicemanager.service /etc/systemd/system/"
 ## Copy needed tools
-ssh root@$AOS_VEHICLE "cp /opt/aos_servicemanager/netns /usr/local/bin/"
-ssh root@$AOS_VEHICLE "cp /opt/aos_servicemanager/wondershaper /usr/local/bin/"
-ssh root@$AOS_VEHICLE "cp /opt/aos_servicemanager/data/fcrypt/rootCA.crt.pem /usr/share/ca-certificates/extra/rootCA.crt"
+ssh root@$AOS_VEHICLE "cp /opt/aos/aos_servicemanager/netns /usr/local/bin/"
+ssh root@$AOS_VEHICLE "cp /opt/aos/aos_servicemanager/wondershaper /usr/local/bin/"
+ssh root@$AOS_VEHICLE "cp /opt/aos/aos_servicemanager/data/fcrypt/rootCA.crt.pem /usr/share/ca-certificates/extra/rootCA.crt"
 ROOT_CERT_ENABLED_ENABLED=`ssh root@$AOS_VEHICLE "cat /etc/ca-certificates.conf | grep extra/rootCA.crt | wc -l"`
 if [[ $ROOT_CERT_ENABLED_ENABLED != 1 ]]; then
   print_colored_text "Add ${GREEN}AOS${NOC} root CA cert..."
@@ -94,3 +99,7 @@ if [[ $ROOT_CERT_ENABLED_ENABLED != 1 ]]; then
   ssh root@$AOS_VEHICLE "update-ca-certificates"
 fi
 ssh root@$AOS_VEHICLE "systemctl enable aos_servicemanager.service"
+
+# Setup VIS in docker
+print_colored_text "Setup ${GREEN}AOS VIS and emulator${NOC}..."
+ssh root@$AOS_VEHICLE "cd /opt/aos/ && docker-compose build && docker-compose up -d"
