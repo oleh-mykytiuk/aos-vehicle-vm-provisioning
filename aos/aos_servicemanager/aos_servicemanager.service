@@ -1,0 +1,14 @@
+[Unit]
+Description=AOS Service Manager
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=15
+WorkingDirectory=/opt/aos_servicemanager
+ExecStart=/opt/aos_servicemanager/aos_servicemanager
+
+[Install]
+WantedBy=multi-user.target
