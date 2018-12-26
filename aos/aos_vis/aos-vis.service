@@ -5,7 +5,7 @@ After=network-online.target telemetry-emulator.service
 
 [Service]
 RestartSec=10
-WorkingDirectory=/var/aos/vis/data
+WorkingDirectory=/var/aos/vis
 ExecStart=/usr/bin/aos_vis -c /var/aos/vis/visconfig.json
 Restart=always
 

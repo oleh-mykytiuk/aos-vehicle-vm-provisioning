@@ -66,7 +66,20 @@ check_hostname
 
 # Update and upgrade ubuntu
 print_colored_text "Updating your ${GREEN}Ubuntu${NOC}..."
-ssh root@$AOS_VEHICLE "apt update && apt upgrade -y"
+ssh root@$AOS_VEHICLE "apt update"
+
+set +e
+for (( ii=0 ; ii<25 ; ii++ ))
+do
+  ssh root@$AOS_VEHICLE "apt upgrade -y"
+  if [[ $? == 0 ]]; then
+    break
+  else
+    print_colored_text "Sleep for ${GREEN}5${NOC} seconds..."
+    sleep 5
+  fi
+done
+set -e
 
 # Install required software
 print_colored_text "installing ${GREEN}system software${NOC}..."

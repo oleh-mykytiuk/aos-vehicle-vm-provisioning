@@ -9,11 +9,11 @@ from http.server import HTTPServer
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aos_telemetry_emulator.config import (
+from telemetry_emulator.config import (
     EMULATOR_UPDATE_TIME, CONTROL_API_ADDRESS, DRIVER_UUID, VEHICLE_VIN
 )
-from aos_telemetry_emulator.control_api import EmulatorCommandsRequestHandler, BadRequestException
-from aos_telemetry_emulator.emulator import VertexPool, Emulator
+from telemetry_emulator.control_api import EmulatorCommandsRequestHandler, BadRequestException
+from telemetry_emulator.emulator import VertexPool, Emulator
 
 logger = logging.getLogger(__name__)
 
