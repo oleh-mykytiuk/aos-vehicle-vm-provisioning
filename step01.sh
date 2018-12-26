@@ -164,6 +164,9 @@ ssh root@$AOS_VEHICLE "systemctl enable telemetry-emulator.service"
 ssh root@$AOS_VEHICLE "systemctl daemon-reload"
 
 # Setup quotas
+print_colored_text "Setup ${GREEN}quotas${NOC}..."
 ssh root@$AOS_VEHICLE "bash ${AOS_BASE_DIR}/set_quotas.sh"
 ssh root@$AOS_VEHICLE "mount -o remount /"
 ssh root@$AOS_VEHICLE "quotacheck -avum && quotaon -avu"
+
+print_colored_text "All ${GREEN}OK${NOC}! Reboot your VM"
