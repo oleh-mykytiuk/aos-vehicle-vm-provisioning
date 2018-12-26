@@ -6,7 +6,7 @@ import os
 EMULATOR_UPDATE_TIME = 1
 
 # Listen address
-CONTROL_API_ADDRESS = ("0.0.0.0", 80)
+CONTROL_API_ADDRESS = ("0.0.0.0", 8088)
 
 # Vehicle VIN and driver UUID
 DRIVER_UUID = os.environ.get("DRIVER_UUID", "NoDriverUUID")

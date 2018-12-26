@@ -66,7 +66,20 @@ check_hostname
 
 # Update and upgrade ubuntu
 print_colored_text "Updating your ${GREEN}Ubuntu${NOC}..."
-ssh root@$AOS_VEHICLE "apt update && apt upgrade -y"
+ssh root@$AOS_VEHICLE "apt update"
+
+set +e
+for (( ii=0 ; ii<25 ; ii++ ))
+do
+  ssh root@$AOS_VEHICLE "apt upgrade -y"
+  if [[ $? == 0 ]]; then
+    break
+  else
+    print_colored_text "Sleep for ${GREEN}5${NOC} seconds..."
+    sleep 5
+  fi
+done
+set -e
 
 # Install required software
 print_colored_text "installing ${GREEN}system software${NOC}..."
@@ -99,11 +112,6 @@ ssh root@$AOS_VEHICLE "nslookup wwwivi &> /dev/null"
 if [[ $? != 0 ]]; then
   print_colored_text "wwwivi is ${RED}unknown${NOC} host. ${GREEN}Add${NOC} it to /etc/hosts!"
   ssh root@$AOS_VEHICLE "echo \"172.19.0.1 wwwivi\" >> /etc/hosts"
-
-  set -e
-
-  # Check wwwivi once again
-  ssh root@$AOS_VEHICLE "nslookup wwwivi &> /dev/null"
 else
   print_colored_text "wwwivi ${GREEN}OK${NOC}."
 fi
@@ -156,6 +164,9 @@ ssh root@$AOS_VEHICLE "systemctl enable telemetry-emulator.service"
 ssh root@$AOS_VEHICLE "systemctl daemon-reload"
 
 # Setup quotas
+print_colored_text "Setup ${GREEN}quotas${NOC}..."
 ssh root@$AOS_VEHICLE "bash ${AOS_BASE_DIR}/set_quotas.sh"
 ssh root@$AOS_VEHICLE "mount -o remount /"
 ssh root@$AOS_VEHICLE "quotacheck -avum && quotaon -avu"
+
+print_colored_text "All ${GREEN}OK${NOC}! Reboot your VM"

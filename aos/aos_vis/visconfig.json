@@ -7,7 +7,7 @@
 			"Plugin": "telemetryemulatoradapter.so",
 			"Disabled": false,
 			"Params": {
-				"SensorURL": "http://telemetry_emulator"
+				"SensorURL": "http://127.0.0.1:8088"
 			}
 		},{
 			"Plugin": "storageadapter.so",
