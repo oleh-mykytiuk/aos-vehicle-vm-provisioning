@@ -14,10 +14,9 @@ initial provisioning of virtual machine with Ubuntu installed
 
 ### OS and Virtual Machine Requirements
 
-The scripts in this project suppose that you:
- - you are using Ubuntu **Server** (for example 18.04LTS) with all the latest updates
- - virtualization engine (for example, QEMU) was setup and works properly on your workstation
- - you've created virtual machine with latest stable Ubuntu 18.04.
+The scripts in this project suppose that you have Ubuntu Server 18.04LTS
+ with all the latest updates running either natively or in some virtualization engine
+ (e.g. VirtualBox, Parallels, QEMU) on your workstation
   
 
 _This repository does not include documentation for
@@ -27,29 +26,19 @@ setting up virtual machine and OS. Please refer to respective documentations._
 
 #### Enable root access to the VM via personal ssh key
 Please, refer to respective documentations.
-Or execute (works under Ubuntu Server):
+Or execute (you'll be asked for your user password 2 times to access to VM):
 
 ```bash
-# Load environment variables (PROVIDE variable values in provisioning.sh for your env)
-source ./provisioning.sh
+# Load environment variables 
+#  (do not forget to PROVIDE values in vm_env_vars.sh for your env:
+#    IP address and user
 
-# Copy your ssh public key to authorized keys
-ssh-copy-id $AOS_VM_USERNAME@$AOS_VEHICLE
-ssh $AOS_VM_USERNAME@$AOS_VEHICLE
-
-# On the remote machine copy authorized_keys to root
-sudo cp ~/.ssh/authorized_keys /root/.ssh/
-
-# Exit from the VM
-exit
-
-# Test connection
-ssh root@$AOS_VEHICLE
+./step00.sh
 ```
 
 ### Setup AOS on VM
 
-Modify ./provisioning.sh to apply your values (IP address of VM) and then run:
+Modify ./vm_env_vars.sh to apply your values (IP address of VM) and then run:
 
 ```bash
 ./step01.sh
