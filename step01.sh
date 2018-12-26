@@ -3,7 +3,7 @@
 set -e
 
 # load variables
-source ./provisioning.sh
+source ./vm_env_vars.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
