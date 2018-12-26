@@ -1,0 +1,26 @@
+# This is template file used to launch AOS services
+# Known variables:
+# * ${ID}            - service id
+# * ${SERVICEPATH}   - path to service dir
+# * ${RUNC}          - path to runc
+# * ${SETNETLIMIT}   - command to set net limit
+# * ${CLEARNETLIMIT} - command to clear net limit
+[Unit]
+Description=AOS Service
+After=network.target
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=1
+ExecStartPre=${RUNC} delete -f ${ID}
+ExecStart=${RUNC} run -d --pid-file ${SERVICEPATH}/.pid -b ${SERVICEPATH} ${ID}
+ExecStartPost=${SETNETLIMIT}
+
+ExecStop=${CLEARNETLIMIT}
+ExecStop=${RUNC} kill ${ID} SIGKILL
+ExecStopPost=${RUNC} delete -f ${ID}
+PIDFile=${SERVICEPATH}/.pid
+
+[Install]
+WantedBy=multi-user.target

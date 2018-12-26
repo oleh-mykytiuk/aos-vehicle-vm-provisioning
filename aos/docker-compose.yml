@@ -1,0 +1,23 @@
+version: '3.3'
+
+services:
+
+  # Telemetry emulator container
+  telemetry_emulator:
+    image: "telemetry_emulator:latest"
+    build:
+      context: ./aos_telemetry_emulator
+    restart: always
+    ports:
+      - "8802:80"
+
+  # AOS VIS
+  aos_vis:
+    image: "aos_vis:latest"
+    build:
+      context: ./aos_vis
+    ports:
+      - "8088:443"
+    restart: always
+    depends_on:
+      - telemetry_emulator
