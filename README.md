@@ -30,7 +30,7 @@ Please, refer to respective documentations.
 Or execute (works under Ubuntu Server):
 
 ```bash
-# Load environment variables
+# Load environment variables (PROVIDE variable values in provisioning.sh for your env)
 source ./provisioning.sh
 
 # Copy your ssh public key to authorized keys
@@ -46,3 +46,13 @@ exit
 # Test connection
 ssh root@$AOS_VEHICLE
 ```
+
+### Setup AOS on VM
+
+Modify ./provisioning.sh to apply your values (IP address of VM) and then run:
+
+```bash
+./step01.sh
+```
+
+After successful setup reboot VM (to apply changes)
