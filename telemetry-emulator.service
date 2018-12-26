@@ -1,0 +1,13 @@
+[Unit]
+Description=Car telemetry data emulator
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+WorkingDirectory=/usr/share/telemetry_emulator
+ExecStart=/usr/bin/python3 /usr/share/telemetry_emulator/emulator_rest.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

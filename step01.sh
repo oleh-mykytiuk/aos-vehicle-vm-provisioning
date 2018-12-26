@@ -2,12 +2,12 @@
 
 set -e
 
-# load variables
-source ./vm_env_vars.sh
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NOC='\033[0m'
+
+AOS_VM_ADDRESS_FILE='~/aos_vm_address'
+AOS_BASE_DIR='/var/aos'
 
 function print_colored_text()
 {
@@ -28,6 +28,40 @@ function check_hostname()
 }
 
 
+# Check for id_rsa and generate it if needed
+if [[ ! -f ~/.ssh/id_rsa ]]; then
+  print_colored_text "${GREEN}id_rsa${NOC} is ${RED}not presents${NOC}, generate it!"
+  ssh-keygen -q -b 2048 -t rsa -f ~/.ssh/id_rsa
+fi
+
+
+# Ask user for VM ip address and username
+
+set +e
+print_colored_text "You will be asked for VirtualMachine ${GREEN}IP${NOC} address and ${GREEN}username${NOC}"
+for (( ; ; ))
+do
+  print_colored_text "Enter ${GREEN}IP address${NOC} of the VirtualMachine (or press Ctrl+C for stop):"
+  read AOS_VM_IP
+  print_colored_text "Enter ${GREEN}username${NOC} for access to the VirtualMachine:"
+  read AOS_VM_USER
+
+  print_colored_text "Trying to copy key to ${GREEN}${AOS_VM_USER}@${AOS_VM_IP}${NOC}. You might be asked for password up to 2 times"
+  ssh-copy-id $AOS_VM_USER@$AOS_VM_IP
+  if [[ $? != 0 ]]; then
+    print_colored_text "${RED}Error coping key${NOC}. Enter values once more time"
+    continue
+  fi
+  ssh $AOS_VM_USER@$AOS_VM_IP "sudo -S cp ~/.ssh/authorized_keys /root/.ssh/"
+
+  rm -f $AOS_VM_ADDRESS_FILE
+  echo $AOS_VM_IP >> $AOS_VM_ADDRESS_FILE
+  AOS_VEHICLE := $AOS_VM_IP
+  print_colored_text "${GREEN}Key successful set${NOC}."
+  break
+done
+
+set -e
 check_hostname
 
 # Update and upgrade ubuntu
@@ -36,16 +70,14 @@ ssh root@$AOS_VEHICLE "apt update && apt upgrade -y"
 
 # Install required software
 print_colored_text "installing ${GREEN}system software${NOC}..."
-ssh root@$AOS_VEHICLE "apt install -y apt-transport-https ca-certificates curl software-properties-common dbus-x11"
+ssh root@$AOS_VEHICLE "apt install -y apt-transport-https ca-certificates curl software-properties-common dbus-x11 quota"
 
-# Install docker
+# Install docker (and runc)
 print_colored_text "Installing ${GREEN}DOCKER${NOC}..."
 ssh root@$AOS_VEHICLE "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -"
 ssh root@$AOS_VEHICLE "add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu `lsb_release -cs` stable\""
 ssh root@$AOS_VEHICLE "apt update"
 ssh root@$AOS_VEHICLE "apt install -y docker-ce"
-ssh root@$AOS_VEHICLE "curl -L \"https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose"
-ssh root@$AOS_VEHICLE "chmod +x /usr/local/bin/docker-compose"
 
 # Check sysctl.ipv4.ip_forward
 print_colored_text "Checking ${GREEN}IP forward${NOC}..."
@@ -81,25 +113,49 @@ set -e
 
 # Copy files
 print_colored_text "Copying files to VM..."
-ssh root@$AOS_VEHICLE "mkdir -p /opt/aos/aos_servicemanager/data/fcrypt"
+ssh root@$AOS_VEHICLE "mkdir -p ${AOS_BASE_DIR}/servicemanager"
+ssh root@$AOS_VEHICLE "mkdir -p ${AOS_BASE_DIR}/vis"
+ssh root@$AOS_VEHICLE "mkdir -p /usr/share/telemetry_emulator"
 ssh root@$AOS_VEHICLE "mkdir -p /usr/share/ca-certificates/extra/"
-rcp -r ./aos/* root@$AOS_VEHICLE:/opt/aos/
+
+rcp -r ./aos/aos_servicemanager/* root@$AOS_VEHICLE:${AOS_BASE_DIR}/servicemanager
+rcp -r ./aos/aos_vis/* root@$AOS_VEHICLE:${AOS_BASE_DIR}/vis
+rcp -r ./aos/aos_telemetry_emulator/* root@$AOS_VEHICLE:/usr/share/telemetry_emulator
+rcp ./aos/set_quotas.sh root@$AOS_VEHICLE:${AOS_BASE_DIR}/set_quotas.sh
 
 # Setup AOS service manager
 print_colored_text "Setup ${GREEN}AOS services${NOC}..."
-ssh root@$AOS_VEHICLE "cp /opt/aos/aos_servicemanager/aos_servicemanager.service /etc/systemd/system/"
+ssh root@$AOS_VEHICLE "cp ${AOS_BASE_DIR}/servicemanager/aos-servicemanager.service /etc/systemd/system/"
 ## Copy needed tools
-ssh root@$AOS_VEHICLE "cp /opt/aos/aos_servicemanager/netns /usr/local/bin/"
-ssh root@$AOS_VEHICLE "cp /opt/aos/aos_servicemanager/wondershaper /usr/local/bin/"
-ssh root@$AOS_VEHICLE "cp /opt/aos/aos_servicemanager/data/fcrypt/rootCA.crt.pem /usr/share/ca-certificates/extra/rootCA.crt"
+ssh root@$AOS_VEHICLE "cp ${AOS_BASE_DIR}/servicemanager/aos_servicemanager /usr/bin/"
+ssh root@$AOS_VEHICLE "cp ${AOS_BASE_DIR}/servicemanager/netns /usr/local/bin/"
+ssh root@$AOS_VEHICLE "cp ${AOS_BASE_DIR}/servicemanager/wondershaper /usr/local/bin/"
+ssh root@$AOS_VEHICLE "cp ${AOS_BASE_DIR}/servicemanager/data/fcrypt/rootCA.crt.pem /usr/share/ca-certificates/extra/rootCA.crt"
+
 ROOT_CERT_ENABLED_ENABLED=`ssh root@$AOS_VEHICLE "cat /etc/ca-certificates.conf | grep extra/rootCA.crt | wc -l"`
 if [[ $ROOT_CERT_ENABLED_ENABLED != 1 ]]; then
   print_colored_text "Add ${GREEN}AOS${NOC} root CA cert..."
   ssh root@$AOS_VEHICLE "echo \"extra/rootCA.crt\" >> /etc/ca-certificates.conf"
   ssh root@$AOS_VEHICLE "update-ca-certificates"
 fi
-ssh root@$AOS_VEHICLE "systemctl enable aos_servicemanager.service"
+ssh root@$AOS_VEHICLE "systemctl enable aos-servicemanager.service"
 
-# Setup VIS in docker
-print_colored_text "Setup ${GREEN}AOS VIS and emulator${NOC}..."
-ssh root@$AOS_VEHICLE "cd /opt/aos/ && docker-compose build && docker-compose up -d"
+# Setup VIS
+print_colored_text "Setup ${GREEN}AOS VIS${NOC}..."
+ssh root@$AOS_VEHICLE "cp ${AOS_BASE_DIR}/vis/aos_vis /usr/bin/"
+ssh root@$AOS_VEHICLE "cp ${AOS_BASE_DIR}/vis/aos-vis.service /etc/systemd/system/"
+ssh root@$AOS_VEHICLE "systemctl enable aos-vis.service"
+
+
+# Setup Telemetry emulator
+print_colored_text "Setup ${GREEN}AOS telemetry emulator${NOC}..."
+ssh root@$AOS_VEHICLE "cp /usr/share/telemetry_emulator/telemetry-emulator.service /etc/systemd/system/"
+ssh root@$AOS_VEHICLE "systemctl enable telemetry-emulator.service"
+
+# Reload daemons
+ssh root@$AOS_VEHICLE "systemctl daemon-reload"
+
+# Setup quotas
+ssh root@$AOS_VEHICLE "bash ${AOS_BASE_DIR}/set_quotas.sh"
+ssh root@$AOS_VEHICLE "mount -o remount /"
+ssh root@$AOS_VEHICLE "quotacheck -avum && quotaon -avu"
