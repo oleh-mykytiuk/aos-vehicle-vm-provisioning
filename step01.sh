@@ -30,22 +30,22 @@ function check_hostname()
 
 check_hostname
 
-## Update and upgrade ubuntu
-#print_colored_text "Updating your ${GREEN}Ubuntu${NOC}..."
-#ssh root@$AOS_VEHICLE "apt update && apt upgrade -y"
-#
-## Install required software
-#print_colored_text "installing ${GREEN}system software${NOC}..."
-#ssh root@$AOS_VEHICLE "apt install -y apt-transport-https ca-certificates curl software-properties-common dbus-x11"
-#
-## Install docker
-#print_colored_text "Installing ${GREEN}DOCKER${NOC}..."
-#ssh root@$AOS_VEHICLE "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -"
-#ssh root@$AOS_VEHICLE "add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu `lsb_release -cs` stable\""
-#ssh root@$AOS_VEHICLE "apt update"
-#ssh root@$AOS_VEHICLE "apt install -y docker-ce"
-#ssh root@$AOS_VEHICLE "curl -L \"https://github.com/docker/compose/releases/download/1.23.1/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose"
-#ssh root@$AOS_VEHICLE "chmod +x /usr/local/bin/docker-compose"
+# Update and upgrade ubuntu
+print_colored_text "Updating your ${GREEN}Ubuntu${NOC}..."
+ssh root@$AOS_VEHICLE "apt update && apt upgrade -y"
+
+# Install required software
+print_colored_text "installing ${GREEN}system software${NOC}..."
+ssh root@$AOS_VEHICLE "apt install -y apt-transport-https ca-certificates curl software-properties-common dbus-x11"
+
+# Install docker
+print_colored_text "Installing ${GREEN}DOCKER${NOC}..."
+ssh root@$AOS_VEHICLE "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -"
+ssh root@$AOS_VEHICLE "add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu `lsb_release -cs` stable\""
+ssh root@$AOS_VEHICLE "apt update"
+ssh root@$AOS_VEHICLE "apt install -y docker-ce"
+ssh root@$AOS_VEHICLE "curl -L \"https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose"
+ssh root@$AOS_VEHICLE "chmod +x /usr/local/bin/docker-compose"
 
 # Check sysctl.ipv4.ip_forward
 print_colored_text "Checking ${GREEN}IP forward${NOC}..."
