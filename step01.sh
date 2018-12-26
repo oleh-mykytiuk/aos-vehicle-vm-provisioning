@@ -99,11 +99,6 @@ ssh root@$AOS_VEHICLE "nslookup wwwivi &> /dev/null"
 if [[ $? != 0 ]]; then
   print_colored_text "wwwivi is ${RED}unknown${NOC} host. ${GREEN}Add${NOC} it to /etc/hosts!"
   ssh root@$AOS_VEHICLE "echo \"172.19.0.1 wwwivi\" >> /etc/hosts"
-
-  set -e
-
-  # Check wwwivi once again
-  ssh root@$AOS_VEHICLE "nslookup wwwivi &> /dev/null"
 else
   print_colored_text "wwwivi ${GREEN}OK${NOC}."
 fi
